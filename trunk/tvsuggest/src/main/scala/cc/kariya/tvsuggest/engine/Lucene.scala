@@ -34,12 +34,12 @@ object Lucene  extends UILogger {
 
   var indexWriter: IndexWriter = null
 
-  //val dir = new SimpleFSDirectory(new File("cjkindex"))
-  //val analyzer = new CJKAnalyzer(Version.LUCENE_CURRENT)
+  val dir = new SimpleFSDirectory(new File("cjkindex"))
+  val analyzer = new CJKAnalyzer(Version.LUCENE_CURRENT)
   //val dir = new SimpleFSDirectory(new File("yahooindex"))
   //val analyzer = new YahooAnalyzer()
-  val dir = new SimpleFSDirectory(new File("tinyindex"))
-  val analyzer = new TinySegmenterAnalyzer()
+  //val dir = new SimpleFSDirectory(new File("tinyindex"))
+  //val analyzer = new TinySegmenterAnalyzer(Version.LUCENE_CURRENT)
 
   def store(p: AbstractProgramme): Unit = {
     val doc = new Document
