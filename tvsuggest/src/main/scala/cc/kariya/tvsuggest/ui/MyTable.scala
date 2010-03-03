@@ -117,7 +117,7 @@ extends JTable {
   }
 
   def keywordAction(): AbstractAction = {
-    new AbstractAction("キーワードを抽出") {
+    new AbstractAction("キーワードを入力") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
         val v = table.getModel.getValueAt(table.getSelectedRow, 4).asInstanceOf[String]
@@ -127,15 +127,9 @@ extends JTable {
             keywords = Yahoo.getKeyword(v)
           }
           override def done() = {
-            if (keywords.isEmpty) {
-              JOptionPane.showMessageDialog(null, "No hit!")
-            } else {
-              var s = ""
-              for (k <- keywords) {
-                s += "," + k
-              }
-              JOptionPane.showMessageDialog(null, "keywords:" + s)
-            }
+            val dlg = new InputTagDialog(UIMain.main_frame)
+            dlg.setTags(keywords)
+            //JOptionPane.showMessageDialog(null, "keywords:" + dlg.getTags(0))
           }
         }.execute
       }
@@ -191,15 +185,6 @@ extends JTable {
   }
 
 
-  def inputTagAction(): AbstractAction = {
-    new AbstractAction("input tags") {
-      def actionPerformed(e: ActionEvent) = {
-        val dlg = new InputTagDialog
-        JOptionPane.showMessageDialog(null, "tags: " + dlg.getTags(0))
-      }
-    }
-  }
-
   def setContents(arrays: Array[Array[AnyRef]]) = {
     val title = Array("開始": AnyRef, "終了", "Ch", "タイトル", "内容")
     setModel(new DefaultTableModel(arrays, title))
@@ -215,7 +200,6 @@ extends JTable {
             popup.add(keywordAction)
             popup.add(tinySegmenterAction)
             popup.add(yahooSegmenterAction)
-            popup.add(inputTagAction)
 
             popup.show(c, ev.getX, ev.getY)
             ev.consume
