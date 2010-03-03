@@ -190,6 +190,16 @@ extends JTable {
     }
   }
 
+
+  def inputTagAction(): AbstractAction = {
+    new AbstractAction("input tags") {
+      def actionPerformed(e: ActionEvent) = {
+        val dlg = new InputTagDialog
+        JOptionPane.showMessageDialog(null, "tags: " + dlg.getTags(0))
+      }
+    }
+  }
+
   def setContents(arrays: Array[Array[AnyRef]]) = {
     val title = Array("開始": AnyRef, "終了", "Ch", "タイトル", "内容")
     setModel(new DefaultTableModel(arrays, title))
@@ -205,6 +215,8 @@ extends JTable {
             popup.add(keywordAction)
             popup.add(tinySegmenterAction)
             popup.add(yahooSegmenterAction)
+            popup.add(inputTagAction)
+
             popup.show(c, ev.getX, ev.getY)
             ev.consume
           }
