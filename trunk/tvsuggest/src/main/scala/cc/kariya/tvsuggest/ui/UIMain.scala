@@ -6,7 +6,7 @@
 package cc.kariya.tvsuggest.ui
 
 
-import cc.kariya.tvsuggest.Main
+import cc.kariya.tvsuggest.Util
 import cc.kariya.tvsuggest.engine.Lucene
 import cc.kariya.tvsuggest.grabber.IPlugin
 import cc.kariya.tvsuggest.grabber.sp3.Grab
@@ -14,7 +14,6 @@ import com.jidesoft.swing.ButtonStyle
 import com.jidesoft.swing.JideSplitButton
 import com.jidesoft.swing.JideTabbedPane
 import java.awt.BorderLayout
-import java.awt.GridLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.BoxLayout
@@ -26,7 +25,6 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JSeparator
-import javax.swing.JTabbedPane
 import javax.swing.JTextArea
 import javax.swing.JTextField
 import javax.swing.JTree
@@ -90,7 +88,7 @@ object UIMain {
     update_button.addActionListener(new ActionListener {
         def actionPerformed(ev: ActionEvent) = {
           new MyWorker(log_area) {
-            def doInBackground() = Main.main_fetch(Grab)
+            def doInBackground() = Util.fetch(Grab)
             override def done() = {}
           }.execute
         }
@@ -118,7 +116,7 @@ object UIMain {
     header.add(new JLabel("Search"))
     header.add(search_text)
     header.add(update_button)
-    //header.add(RatingBar.panel)
+    header.add(new RatingBar)
 
     footer.addTab("ÉçÉO", scroll_pane_log)
     footer.addTab("è⁄ç◊", scroll_pane_desc)

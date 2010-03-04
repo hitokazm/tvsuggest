@@ -16,7 +16,7 @@ import javax.swing.JPanel
 import javax.swing.JTextArea
 import scala.collection.JavaConversions._
 
-class InputTagDialog(val owner: Frame) extends JDialog(owner, true) {
+class InputTagDialog(val owner: Frame) extends JDialog(owner, "ƒ^ƒO‚ð“ü—Í", true) {
   
   val input = new JTextArea(5,30)
   val panel = new JPanel
@@ -53,7 +53,7 @@ class InputTagDialog(val owner: Frame) extends JDialog(owner, true) {
   this.add(panel, BorderLayout.CENTER)
 
   this.pack
-  this.setSize(320, 200)
+  this.setSize(320, 120)
   this.setLocationRelativeTo(null)
   //this.setVisible(true)
 

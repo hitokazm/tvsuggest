@@ -10,9 +10,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
 import java.net.URLEncoder
-import scala.io.Source
 import scala.xml.XML
-import scala.xml.parsing.ConstructingParser
 
 
 object Yahoo extends UILogger {
