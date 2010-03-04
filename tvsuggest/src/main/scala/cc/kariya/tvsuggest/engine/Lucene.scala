@@ -5,6 +5,8 @@
 
 package cc.kariya.tvsuggest.engine
 
+import cc.kariya.tvsuggest.engine.db.ChannelDB
+import cc.kariya.tvsuggest.engine.db.ProgrammeDB
 import cc.kariya.tvsuggest.grabber.AbstractProgramme
 import cc.kariya.tvsuggest.ui.UILogger
 import cc.kariya.tvsuggest.util.DateUtil
@@ -80,15 +82,16 @@ object Lucene  extends UILogger {
       val doc = indexSearcher.doc(sd.doc)
       val progId = doc.getField("id").stringValue.toInt
 
-      val xml_string = Database.select_xml(progId)
-      val start = Database.select_start(progId)
-      val stop = Database.select_stop(progId)
-      val channelId = Database.select_channelId(progId)
+      val xml_string = ProgrammeDB.select_xml(progId)
+      val start = ProgrammeDB.select_start(progId)
+      val stop = ProgrammeDB.select_stop(progId)
+      val channelId = ProgrammeDB.select_channelId(progId)
       val xml = XML.loadString(xml_string)
       Array(
-        DateUtil.format(start, "yyyyMMddHHmm", "yyyy/MM/dd(E) HH:mm"): AnyRef,
+        progId.asInstanceOf[AnyRef],
+        DateUtil.format(start, "yyyyMMddHHmm", "yyyy/MM/dd(E) HH:mm"),
         DateUtil.format(stop, "yyyyMMddHHmm", "HH:mm"),
-        Database.getChannelName(channelId),
+        ChannelDB.getChannelName(channelId),
         xml \ "title" text,
         xml \ "desc" text)
     }

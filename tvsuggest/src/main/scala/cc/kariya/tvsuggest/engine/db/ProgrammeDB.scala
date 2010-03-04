@@ -3,22 +3,15 @@
  * and open the template in the editor.
  */
 
-package cc.kariya.tvsuggest.engine
+package cc.kariya.tvsuggest.engine.db
 
 import cc.kariya.tvsuggest.grabber.AbstractProgramme
-import cc.kariya.tvsuggest.ui.UILogger
-import java.sql.DriverManager
 
 
-object Database extends UILogger {
+object ProgrammeDB extends Database {
 
-  val connection = {
-    Class.forName("org.sqlite.JDBC")
-    DriverManager.getConnection("jdbc:sqlite:sqlite.db")
-  }
-
-  def init() = {
-    log("initing DB...")
+  def init = {
+    log("initing DB(Programme)...")
 
     val statement = connection.createStatement
     statement.executeUpdate("""
@@ -34,18 +27,8 @@ CREATE TABLE IF NOT EXISTS Programme(
                              """)
 
     statement.executeUpdate("""
-CREATE TABLE IF NOT EXISTS Channel(
-     Id             INTEGER NOT NULL,
-     Sequence       INTEGER NOT NULL,
-     Name           TEXT    NOT NULL,
-     PRIMARY KEY(Id, Sequence),
-     UNIQUE(Name)
-);
-                             """)
-
-    statement.executeUpdate("""
 CREATE TABLE IF NOT EXISTS ProgrammeNew(
-     ID             INTEGER,
+     Id             INTEGER,
      Start          TEXT    NOT NULL,
      Stop           TEXT    NOT NULL,
      ChannelId      TEXT    NOT NULL,
@@ -56,10 +39,6 @@ CREATE TABLE IF NOT EXISTS ProgrammeNew(
                             """)
 
   }
-
-  def begin() = connection.setAutoCommit(false)
-
-  def commit() = connection.commit
 
   def prestore() ={
     log("prestore...")
@@ -165,10 +144,16 @@ INSERT OR REPLACE INTO ProgrammeNew
   }
 
   def select_id(p: AbstractProgramme): Int = {
+    return select_id(p.start, p.stop, p.channelId, p.sequence)
+  }
+
+  def select_id(start: String, stop: String, channelId: String, sequence: Int): Int = {
+    //log("%s %s %s %d".format(start, stop, channelId, sequence))
+
     val statement = connection.createStatement
     val rs = statement.executeQuery(
       "SELECT Id FROM Programme WHERE Start = '%s' AND Stop = '%s' AND ChannelId = '%s' AND Sequence = %d;"
-      .format(p.start, p.stop, p.channelId, p.sequence))
+      .format(start, stop, channelId, sequence))
     return rs.getInt("Id")
   }
 
@@ -180,37 +165,6 @@ INSERT OR REPLACE INTO ProgrammeNew
       l += rs.getString("xml")
     }
     l.toArray
-  }
-
-  def registerChannel(id: String, name: String) = {
-    log("registering channel: " + name)
-
-    val statement = connection.createStatement
-    statement.executeUpdate("""
-INSERT OR IGNORE INTO Channel
-VALUES(
-  '%s',
-  COALESCE((SELECT MAX(Sequence) + 1 FROM Channel WHERE Id = '%s'), 0),
-  '%s'
-)
-;
-                            """.format(id, id, name))
-  }
-
-  def getChannelName(id: String): String = {
-    val statement = connection.createStatement
-    val rs = statement.executeQuery(
-      "SELECT Name FROM Channel WHERE Id = '%s' AND Sequence = %d;"
-      .format(id, 0))
-    rs.getString("Name")
-  }
-
-  def getChannelId(name: String): String = {
-    val statement = connection.createStatement
-    val rs = statement.executeQuery(
-      "SELECT Id FROM Channel WHERE Name = '%s';"
-      .format(name))
-    rs.getString("Id")
   }
 }
 
