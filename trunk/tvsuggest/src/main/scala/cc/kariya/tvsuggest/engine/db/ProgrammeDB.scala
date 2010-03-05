@@ -6,6 +6,11 @@
 package cc.kariya.tvsuggest.engine.db
 
 import cc.kariya.tvsuggest.grabber.AbstractProgramme
+import cc.kariya.tvsuggest.util.DateUtil
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.GregorianCalendar
+import scala.xml.XML
 
 
 object ProgrammeDB extends Database {
@@ -52,22 +57,26 @@ CREATE TABLE IF NOT EXISTS ProgrammeNew(
     //log("storing...")
 
     val statement = connection.createStatement
-    statement.executeUpdate("""
+
+    val rs = statement.executeQuery("""
+SELECT Id FROM Programme WHERE Start = '%s' AND  Stop = '%s' AND ChannelId = '%s' AND Sequence = %d;
+                                    """
+                                    .format(p.start, p.stop, p.channelId, p.sequence))
+    if (!rs.next) {
+      statement.executeUpdate("""
 INSERT OR IGNORE INTO Programme
 (Start, Stop, ChannelId, Sequence, Xml) VALUES
 ('%s', '%s', '%s', %d, '%s');
-                            """.format(p.start, p.stop, p.channelId, p.sequence, p.toXml))
+                              """.format(p.start, p.stop, p.channelId, p.sequence, p.toXml))
 
-    val rs = statement.executeQuery("SELECT changes() AS Change;")
-    val change = rs.getInt("Change")
-    if (change > 0) {
+    } else {
+      val id = rs.getInt("Id")
+      //log("dup " + id)
       statement.executeUpdate("""
 INSERT OR REPLACE INTO ProgrammeNew
 (Id, Start, Stop, ChannelId, Sequence, Xml) VALUES
-((SELECT Id FROM Programme WHERE Start = '%s' AND Stop = '%s' AND ChannelID = '%s' AND Sequence = %d),
- '%s', '%s', '%s', %d, '%s');
-                              """.format(p.start, p.stop, p.channelId, p.sequence,
-                                         p.start, p.stop, p.channelId, p.sequence, p.toXml))
+(%d, '%s', '%s', '%s', %d, '%s');
+                              """.format(id, p.start, p.stop, p.channelId, p.sequence, p.toXml))
     }
   }
 
@@ -75,7 +84,7 @@ INSERT OR REPLACE INTO ProgrammeNew
     log("getting delete targets...")
 
     val statement = connection.createStatement
-    val rs = statement.executeQuery("SELECT Id FROM Programme INTERSECT SELECT Id FROM ProgrammeNew;")
+    val rs = statement.executeQuery("SELECT Id FROM ProgrammeNew;")
 
     var l = new scala.collection.mutable.ListBuffer[Int]
     while (rs.next) {
@@ -86,7 +95,7 @@ INSERT OR REPLACE INTO ProgrammeNew
   }
 
   def delete_old_programme(progId: Int) = {
-   //log("deleting old data...")
+    //log("deleting old data...")
 
     val statement = connection.createStatement
     statement.executeUpdate("DELETE FROM Programme WHERE Id = %d"
@@ -97,14 +106,14 @@ INSERT OR REPLACE INTO ProgrammeNew
     log("updating new data...")
 
     val statement = connection.createStatement
-    statement.executeUpdate("INSERT INTO Programme SELECT * FROM ProgrammeNew;")
+    statement.executeUpdate("REPLACE INTO Programme SELECT * FROM ProgrammeNew;")
     log("updating...")
     statement.executeUpdate("DELETE FROM ProgrammeNew;")
     log("updated")
   }
 
   def select_xml(progId: Int): String = {
-    log(progId.toString)
+    //log(progId.toString)
 
     val statement = connection.createStatement
     val rs = statement.executeQuery(
@@ -165,6 +174,48 @@ INSERT OR REPLACE INTO ProgrammeNew
       l += rs.getString("xml")
     }
     l.toArray
+  }
+
+  def searchTimeNeighbor(s: String): Array[Array[AnyRef]] = {
+    //log("Searching near: " + s)
+
+    val (from, to) = {
+      val formatter = new SimpleDateFormat()
+      formatter.applyPattern("yyyyMMddHHmm")
+      val now = formatter.parse(s.substring(0, 12))
+      val cal1 = new GregorianCalendar()
+      val cal2 = new GregorianCalendar()
+      cal1.setTime(now)
+      cal1.add(Calendar.MINUTE, -30)
+      cal2.setTime(now)
+      cal2.add(Calendar.MINUTE, 30)
+      (formatter.format(cal1.getTime), formatter.format(cal2.getTime))
+    }
+
+    val statement = connection.createStatement
+    val rs = statement.executeQuery("""
+SELECT Id, Start, Stop, CHannelId, Sequence, Xml FROM Programme WHERE Start BETWEEN '%s' AND '%s'
+                                    """
+                                    .format(from, to))
+    var l = new scala.collection.mutable.ListBuffer[Array[AnyRef]]
+    while (rs.next) {
+      val id = rs.getInt("Id")
+      val start = rs.getString("Start")
+      val stop = rs.getString("Stop")
+      val channelId = rs.getString("channelId")
+      val xml = XML.loadString(rs.getString("xml"))
+
+      l += Array(
+        rs.getInt("Id").asInstanceOf[AnyRef],
+        0.asInstanceOf[AnyRef],
+        DateUtil.format(start, "yyyyMMddHHmm", "yyyy/MM/dd(E) HH:mm"),
+        DateUtil.format(stop, "yyyyMMddHHmm", "HH:mm"),
+        ChannelDB.getChannelName(channelId),
+        xml \ "title" text,
+        xml \ "desc" text 
+      )
+    }
+    return l.toArray
   }
 }
 

@@ -11,7 +11,9 @@ import cc.kariya.tvsuggest.engine.TinySegmenter
 import cc.kariya.tvsuggest.engine.Yahoo
 import cc.kariya.tvsuggest.engine.YahooAnalyzer
 import cc.kariya.tvsuggest.engine.db.ProgrammeDB
+import com.jidesoft.swing.TableSearchable
 import java.awt.Component
+import java.awt.EventQueue
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -28,6 +30,8 @@ import javax.swing.JTable
 import javax.swing.JTextArea
 import javax.swing.UIManager
 import javax.swing.border.EmptyBorder
+import javax.swing.event.ChangeEvent
+import javax.swing.event.ChangeListener
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.table.DefaultTableModel
@@ -40,23 +44,27 @@ import org.apache.lucene.analysis.tokenattributes.TermAttribute
 
 class MyTable(val tabbed_pane: JTabbedPane, val log_area: JTextArea, val desc_area: JTextArea)
 extends JTable {
-  setDefaultRenderer(classOf[AnyRef], new MultiLineCellRenderer
-                     /*{
-                      val birow_color = new Color(204, 204, 255)
-                      val org_color = Color.WHITE
-                      override def getTableCellRendererComponent(
-                      tbl: JTable, value: AnyRef, isSelected: Boolean, hasFocus: Boolean, r: Int, c: Int
-                      ) = {
-                      val component = super.getTableCellRendererComponent(tbl, value, isSelected, hasFocus, r, c)
-                      if (r % 2 == 0) {
-                      setBackground(birow_color)
-                      } else {
-                      setBackground(org_color)
-                      }
-                      component
-                      }
-  }*/)
 
+  this.setAutoCreateRowSorter(true)
+  //val searchable = new TableSearchable(this)
+
+  /*  setDefaultRenderer(classOf[AnyRef], new MultiLineCellRenderer
+   {
+   val birow_color = new Color(204, 204, 255)
+   val org_color = Color.WHITE
+   override def getTableCellRendererComponent(
+   tbl: JTable, value: AnyRef, isSelected: Boolean, hasFocus: Boolean, r: Int, c: Int
+   ) = {
+   val component = super.getTableCellRendererComponent(tbl, value, isSelected, hasFocus, r, c)
+   if (r % 2 == 0) {
+   setBackground(birow_color)
+   } else {
+   setBackground(org_color)
+   }
+   component
+   }
+   })
+   */
   getSelectionModel.addListSelectionListener(
     new ListSelectionListener {
       def valueChanged(ev: ListSelectionEvent) = {
@@ -64,7 +72,7 @@ extends JTable {
           val i = MyTable.this.getSelectedRowCount
           if (i == 1) {
             val v = ev.getSource.asInstanceOf[DefaultListSelectionModel]
-            val desc = MyTable.this.getModel.getValueAt(v.getMaxSelectionIndex, 5).asInstanceOf[String]
+            val desc = MyTable.this.getModel.getValueAt(v.getMaxSelectionIndex, COL_DESC).asInstanceOf[String]
             MyTable.this.desc_area.setText(desc)
           }
         }
@@ -75,7 +83,7 @@ extends JTable {
     new AbstractAction("MoreLikeThis") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
-        val v = table.getModel.getValueAt(table.getSelectedRow, 5).asInstanceOf[String]
+        val v = table.getModel.getValueAt(table.getSelectedRow, COL_DESC).asInstanceOf[String]
         new MyWorker(table.log_area) {
           var ar: Array[Array[AnyRef]] = null
           def doInBackground() = {
@@ -83,7 +91,7 @@ extends JTable {
             Lucene.close
           }
           override def done() = {
-            if (ar.isEmpty) {
+            if (ar == null || ar.isEmpty) {
               JOptionPane.showMessageDialog(null, "No hit!")
             } else {
               val new_table = new MyTable(table.tabbed_pane, table.log_area, table.desc_area)
@@ -101,12 +109,11 @@ extends JTable {
     new AbstractAction("同時間帯を検索") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
-        val pid = table.getModel.getValueAt(table.getSelectedRow, 0).asInstanceOf[Int]
+        val pid = table.getModel.getValueAt(table.getSelectedRow, COL_PID).asInstanceOf[Int]
         new MyWorker(table.log_area) {
           var ar: Array[Array[AnyRef]] = null
           def doInBackground() = {
-            ar = Lucene.searchTimeNeighbor(ProgrammeDB.select_start(pid))
-            Lucene.close
+            ar = ProgrammeDB.searchTimeNeighbor(ProgrammeDB.select_start(pid))
           }
           override def done() = {
             if (ar.isEmpty) {
@@ -127,8 +134,10 @@ extends JTable {
     new AbstractAction("キーワードを入力") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
-        val pid = table.getModel.getValueAt(table.getSelectedRow, 0).asInstanceOf[Int]
-        val doc = table.getModel.getValueAt(table.getSelectedRow, 5).asInstanceOf[String]
+        val pid = table.getModel.getValueAt(table.getSelectedRow, COL_PID).asInstanceOf[Int]
+        val rate = table.getModel.getValueAt(table.getSelectedRow, COL_RATING).asInstanceOf[Int]
+        println("rate " + rate)
+        val doc = table.getModel.getValueAt(table.getSelectedRow, COL_DESC).asInstanceOf[String]
         new MyWorker(table.log_area) {
           var tags: Seq[String] = null
           def doInBackground() = {
@@ -157,7 +166,7 @@ extends JTable {
     new AbstractAction("TinySegmeenterで区切る") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
-        val v = table.getModel.getValueAt(table.getSelectedRow, 5).asInstanceOf[String]
+        val v = table.getModel.getValueAt(table.getSelectedRow, COL_DESC).asInstanceOf[String]
         new MyWorker(table.log_area) {
           var keywords: Array[String] = null
           def doInBackground() = {
@@ -183,7 +192,7 @@ extends JTable {
     new AbstractAction("Yahoo形態素分析で区切る") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
-        val v = table.getModel.getValueAt(table.getSelectedRow, 5).asInstanceOf[String]
+        val v = table.getModel.getValueAt(table.getSelectedRow, COL_DESC).asInstanceOf[String]
         new MyWorker(table.log_area) {
           var words: TokenStream = null
           def doInBackground() = {
@@ -201,12 +210,21 @@ extends JTable {
     }
   }
 
+  val COL_PID = 0
+  val COL_RATING = 1
+  val COL_START = 2
+  val COL_STOP = 3
+  val COL_CH = 4
+  val COL_TITLE = 5
+  val COL_DESC = 6
 
   def setContents(arrays: Array[Array[AnyRef]]) = {
-    val title = Array("PID", "開始": AnyRef, "終了", "Ch", "タイトル", "内容")
+    val title = Array("pid", "レ ー テ ィ ン グ", "開始": AnyRef, "終了", "Ch", "タイトル", "内容")
     setModel(new DefaultTableModel(arrays, title))
     setAutoResizeMode(JTable.AUTO_RESIZE_OFF)
-    ColumnResizer.adjustColumnPreferredWidths2(this)
+    val renderer = new RatingBarEditorRenderer(this)
+    this.getColumnModel.getColumn(COL_RATING).setCellRenderer(renderer)
+    this.getColumnModel.getColumn(COL_RATING).setCellEditor(renderer)
     addMouseListener(new MouseAdapter {
         override def mouseReleased(ev: MouseEvent) = {
           if (ev.isPopupTrigger) {
@@ -223,9 +241,9 @@ extends JTable {
           }
         }
       })
-    val renderer = new RatingBarEditorRenderer(this)
-    this.getColumnModel.getColumn(0).setCellRenderer(renderer)
-    this.getColumnModel.getColumn(0).setCellEditor(renderer)
+//    this.getColumn(COL_PID).setMaxWidth(0)
+//    this.getColumn(COL_RATING).setMinWidth(80)
+    ColumnResizer.adjustColumnPreferredWidths2(this)
   }
 }
 
@@ -261,11 +279,24 @@ extends AbstractCellEditor with TableCellRenderer with TableCellEditor {
   val ratingBarEditor = new RatingBar
   val ratingBarRenderer = new RatingBar
 
+  ratingBarEditor.addChangeListener(new ChangeListener {
+    def stateChanged(ev: ChangeEvent) = {
+      EventQueue.invokeLater(new Runnable {
+        override def run = {
+          val row = table.convertRowIndexToModel(table.getSelectedRow)
+          val col = table.getSelectedColumn
+          table.getModel().setValueAt(ratingBarEditor.getLevel, row, col)
+        }
+      })
+    }
+  })
+
   def getTableCellEditorComponent(
     table: JTable, value: AnyRef, isSelected: Boolean, row: Int, column: Int
   ): Component = {
     val i = value.asInstanceOf[Int]
     ratingBarEditor.setLevel(i)
+    ratingBarRenderer.setBackground(table.getBackground)
     return ratingBarEditor
   }
 
@@ -278,7 +309,7 @@ extends AbstractCellEditor with TableCellRenderer with TableCellEditor {
   ): Component = {
     val i = value.asInstanceOf[Int]
     ratingBarRenderer.setLevel(i)
+    ratingBarRenderer.setBackground(if (hasFocus) table.getSelectionBackground else table.getBackground)
     return ratingBarRenderer
   }
-
 }

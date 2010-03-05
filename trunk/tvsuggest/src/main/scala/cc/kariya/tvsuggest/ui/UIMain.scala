@@ -116,7 +116,7 @@ object UIMain {
     header.add(new JLabel("Search"))
     header.add(search_text)
     header.add(update_button)
-    header.add(new RatingBar)
+    //header.add(new RatingBar)
 
     footer.addTab("ƒƒO", scroll_pane_log)
     footer.addTab("Ú×", scroll_pane_desc)
