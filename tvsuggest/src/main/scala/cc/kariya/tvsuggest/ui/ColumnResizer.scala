@@ -14,8 +14,6 @@ import javax.swing.SwingUtilities
 object ColumnResizer extends UILogger {
 
   def adjustColumnPreferredWidths(table: JTable) = {
-    log("adjusting...")
-
     val columnModel = table.getColumnModel
     for (col <- 0 to table.getColumnCount - 1) {
       var maxWidth = 0
@@ -26,9 +24,14 @@ object ColumnResizer extends UILogger {
         maxWidth = Math.max(comp.getPreferredSize.width, maxWidth)
       }
       val column = columnModel.getColumn(col)
+      val headerRenderer = {
+        if (column.getHeaderRenderer != null) column.getHeaderRenderer
+        else table.getTableHeader.getDefaultRenderer
+      }
+      val headerValue = column.getHeaderValue
+      val headerComponent = headerRenderer.getTableCellRendererComponent(table, headerValue, false, false, 0, col)
+      maxWidth = Math.max(maxWidth, headerComponent.getPreferredSize.width)
       column.setPreferredWidth(maxWidth)
-      
-      log("col:%d width:%d".format(col, maxWidth))
     }
   }
 
@@ -43,6 +46,13 @@ object ColumnResizer extends UILogger {
         maxWidth = Math.max(w, maxWidth)
       }
       val column = columnModel.getColumn(col)
+      val headerRenderer = {
+        if (column.getHeaderRenderer != null) column.getHeaderRenderer
+        else table.getTableHeader.getDefaultRenderer
+      }
+      val headerValue = column.getHeaderValue
+      val headerComponent = headerRenderer.getTableCellRendererComponent(table, headerValue, false, false, 0, col)
+      maxWidth = Math.max(maxWidth, headerComponent.getPreferredSize.width)
       column.setPreferredWidth(maxWidth + is * 2)
     }
   }

@@ -56,10 +56,10 @@ object Lucene  extends UILogger {
   def optimize = indexWriter.optimize
 
   def delete(progId: Int) = {
-    //log("deleting " + p.toString)
+    //log("deleting " + progId)
 
-    val qp = new QueryParser(Version.LUCENE_CURRENT, "xml", analyzer)
-    val query = qp.parse("id:\"%d\"".format(progId))
+    val qp = new QueryParser(Version.LUCENE_CURRENT, "id", analyzer)
+    val query = qp.parse("id:%d".format(progId))
     indexWriter.deleteDocuments(query)
   }
 
@@ -81,7 +81,6 @@ object Lucene  extends UILogger {
       sd =>
       val doc = indexSearcher.doc(sd.doc)
       val progId = doc.getField("id").stringValue.toInt
-
       val xml_string = ProgrammeDB.select_xml(progId)
       val start = ProgrammeDB.select_start(progId)
       val stop = ProgrammeDB.select_stop(progId)
@@ -89,11 +88,12 @@ object Lucene  extends UILogger {
       val xml = XML.loadString(xml_string)
       Array(
         progId.asInstanceOf[AnyRef],
+        0.asInstanceOf[AnyRef],
         DateUtil.format(start, "yyyyMMddHHmm", "yyyy/MM/dd(E) HH:mm"),
         DateUtil.format(stop, "yyyyMMddHHmm", "HH:mm"),
         ChannelDB.getChannelName(channelId),
         xml \ "title" text,
-        xml \ "desc" text)
+        xml \ "desc" text )
     }
     indexSearcher.close
     ar
@@ -110,28 +110,6 @@ object Lucene  extends UILogger {
     val q = mlt.like(new StringReader(s))
 
 //    val q = new MoreLikeThisQuery(s, Array("xml"), new CJKAnalyzer(Version.LUCENE_CURRENT))
-
-    search_common(q)
-  }
-
-  def searchTimeNeighbor(s: String): Array[Array[AnyRef]] = {
-    log("Searching near: " + s)
-
-    val (from, to) = {
-      val formatter = new SimpleDateFormat()
-      formatter.applyPattern("yyyyMMddHHmm")
-      val today = formatter.parse(s.substring(0, 12))
-      val cal1 = new GregorianCalendar()
-      val cal2 = new GregorianCalendar()
-      cal1.setTime(today)
-      cal1.add(Calendar.MINUTE, -30)
-      cal2.setTime(today)
-      cal2.add(Calendar.MINUTE, 30)
-      (formatter.format(cal1.getTime), formatter.format(cal2.getTime))
-    }
-
-    val qp = new QueryParser(Version.LUCENE_CURRENT, "xml", analyzer)
-    val q = qp.parse("start:[%s TO %s]".format(from, to))
 
     search_common(q)
   }

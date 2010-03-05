@@ -20,6 +20,8 @@ import java.awt.image.RGBImageFilter
 import javax.swing.ImageIcon
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.event.ChangeEvent
+import javax.swing.event.ChangeListener
 
 
 class RatingBar(
@@ -52,34 +54,38 @@ class RatingBar(
   addMouseMotionListener(this)
   addMouseWheelListener(this)
 
+  this.setBackground(Color.WHITE)
+
   private var clicked = -1
 
-  def clear() = {
-    clicked = -1
-    repaintIcon(clicked)
-  }
-
-  def getLevel = clicked
-
+  def clear = setLevel(0)
+  def getLevel = clicked + 1
   def setLevel(l: Int) = {
-    clicked = l
+    clicked = l - 1
     repaintIcon(clicked)
   }
 
-  private def getSelectedIconIndex(p: Point) = {
-    (
-      (
-        labelList.zipWithIndex flatMap {
-          case (l , i) =>
-            val r = l.getBounds()
-            r.grow(gap, gap)
-            if (r.contains(p)) List(i) else List()
-        }
-      ) ::: List(-1)
-    ).head
+  private def getSelectedIconIndex(p: Point): Int = {
+    labelList.zipWithIndex foreach {
+      case (l , i) =>
+        val r = l.getBounds()
+        r.grow(gap, gap)
+        if (r.contains(p)) return i
+    }
+    return -1
+  }
+
+  var changeListeners: List[ChangeListener] = List()
+  def addChangeListener(l: ChangeListener) = {
+    changeListeners = l :: changeListeners
   }
 
   protected def repaintIcon(index: Int) = {
+    val ev = new ChangeEvent(this)
+    for (l <- changeListeners) {
+      l.stateChanged(ev)
+    }
+
     for ((l, i) <- labelList.zipWithIndex) {
       l.setIcon(if (i <= index) iconList(i) else defaultIcon)
     }
@@ -93,6 +99,7 @@ class RatingBar(
       clear
     } else {
       clicked = getSelectedIconIndex(e.getPoint)
+      repaintIcon(clicked) // ?
     }
   }
   def mouseExited(e: MouseEvent) = repaintIcon(clicked)
