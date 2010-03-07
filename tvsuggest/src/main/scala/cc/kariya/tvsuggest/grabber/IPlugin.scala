@@ -8,6 +8,7 @@ package cc.kariya.tvsuggest.grabber
 
 trait IPlugin {
 
+  //def getInstnace : IPlugin
   def getPluginName(): String
   
   def getChannels: Map[String, List[String]]

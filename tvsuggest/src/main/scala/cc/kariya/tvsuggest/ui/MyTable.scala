@@ -5,13 +5,12 @@
 
 package cc.kariya.tvsuggest.ui
 
-import cc.kariya.tvsuggest.Util
 import cc.kariya.tvsuggest.engine.Lucene
 import cc.kariya.tvsuggest.engine.TinySegmenter
+import cc.kariya.tvsuggest.engine.Util
 import cc.kariya.tvsuggest.engine.Yahoo
 import cc.kariya.tvsuggest.engine.YahooAnalyzer
 import cc.kariya.tvsuggest.engine.db.ProgrammeDB
-import com.jidesoft.swing.TableSearchable
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.ActionEvent
