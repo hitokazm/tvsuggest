@@ -6,8 +6,8 @@
 package cc.kariya.tvsuggest.ui
 
 
-import cc.kariya.tvsuggest.Util
 import cc.kariya.tvsuggest.engine.Lucene
+import cc.kariya.tvsuggest.engine.Util
 import cc.kariya.tvsuggest.grabber.IPlugin
 import cc.kariya.tvsuggest.grabber.sp3.Grab
 import com.jidesoft.swing.ButtonStyle
@@ -16,6 +16,7 @@ import com.jidesoft.swing.JideTabbedPane
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
@@ -31,6 +32,10 @@ import javax.swing.JTree
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
+import javax.swing.event.TreeSelectionEvent
+import javax.swing.event.TreeSelectionListener
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeModel
 
 object UIMain {
 
@@ -85,11 +90,54 @@ object UIMain {
         }
       })
 
+    tree.getSelectionModel.addTreeSelectionListener(new TreeSelectionListener {
+        def valueChanged(e: TreeSelectionEvent) = {
+          val buf = new StringBuffer
+          for (o <- e.getPath.getPath.tail) {
+            buf.append(" AND %s".format(o.toString))
+          }
+          val text = buf.substring(5)
+          new MyWorker(log_area) {
+            var ar: Array[Array[AnyRef]] = null
+            def doInBackground() = {
+              ar = Lucene.search(text)
+              Lucene.close
+            }
+            override def done() = {
+              if (ar.isEmpty) {
+                val suggestions = Lucene.spellcheck(text)
+                var maybe = ""
+                for (s <- suggestions) {
+                  maybe += " " + s
+                }
+                JOptionPane.showMessageDialog(null, "No hit! Maybe" + maybe)
+              } else {
+                val table = new MyTable(body, log_area, desc_area)
+                table.setDefaultEditor(classOf[AnyRef], null)
+                table.setContents(ar)
+                body.addTab(text, new JScrollPane(table))
+                body.setSelectedIndex(body.getTabCount - 1)
+              }
+            }
+          }.execute
+        }
+      })
+    
+    val root = new DefaultMutableTreeNode("キーワード")
+    val node = new DefaultMutableTreeNode("SF")
+    node.add(new DefaultMutableTreeNode("海外"))
+    root.add(node)
+    root.add(new DefaultMutableTreeNode("ドラマ"))
+    val model = new DefaultTreeModel(root)
+    tree.setModel(model)
+
+
     update_button.addActionListener(new ActionListener {
         def actionPerformed(ev: ActionEvent) = {
           new MyWorker(log_area) {
             def doInBackground() = Util.fetch(Grab)
-            override def done() = {}
+            override def done() = {
+            }
           }.execute
         }
       })
@@ -99,7 +147,11 @@ object UIMain {
       update_button.add(new JMenuItem(plugin.getPluginName))
     }
     update_button.add(new JSeparator)
-    update_button.add(new JMenuItem("設定"))
+    update_button.add(new AbstractAction("設定") {
+      def actionPerformed(e: ActionEvent) = {
+        new ConfigDialog(main_frame).show
+      }
+    })
 
     body.setShowCloseButton(true)
     body.setShowCloseButtonOnTab(true)

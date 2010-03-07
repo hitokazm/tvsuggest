@@ -3,10 +3,8 @@
  * and open the template in the editor.
  */
 
-package cc.kariya.tvsuggest
+package cc.kariya.tvsuggest.engine
 
-
-import cc.kariya.tvsuggest.engine.Lucene
 import cc.kariya.tvsuggest.grabber.IPlugin
 import cc.kariya.tvsuggest.engine.db.ChannelDB
 import cc.kariya.tvsuggest.engine.db.Database
