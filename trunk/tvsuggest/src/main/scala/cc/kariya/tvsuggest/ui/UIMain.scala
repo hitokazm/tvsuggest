@@ -8,6 +8,7 @@ package cc.kariya.tvsuggest.ui
 
 import cc.kariya.tvsuggest.engine.Lucene
 import cc.kariya.tvsuggest.engine.Util
+import cc.kariya.tvsuggest.engine.ConfigData
 import cc.kariya.tvsuggest.grabber.IPlugin
 import cc.kariya.tvsuggest.grabber.sp3.Grab
 import com.jidesoft.swing.ButtonStyle
@@ -53,7 +54,7 @@ object UIMain {
   val log_area = new JTextArea(80, 10)
   val desc_area = new JTextArea(80, 10)
   val search_text = new JTextField
-  val update_button = new JideSplitButton("çXêV")
+  val update_button = new JideSplitButton("Êõ¥Êñ∞")
   val scroll_pane_log = new JScrollPane
   val scroll_pane_desc = new JScrollPane
   val tree = new JTree
@@ -123,11 +124,11 @@ object UIMain {
         }
       })
     
-    val root = new DefaultMutableTreeNode("ÉLÅ[ÉèÅ[Éh")
+    val root = new DefaultMutableTreeNode("„Ç≠„Éº„ÉØ„Éº„Éâ")
     val node = new DefaultMutableTreeNode("SF")
-    node.add(new DefaultMutableTreeNode("äCäO"))
+    node.add(new DefaultMutableTreeNode("Êµ∑Â§ñ"))
     root.add(node)
-    root.add(new DefaultMutableTreeNode("ÉhÉâÉ}"))
+    root.add(new DefaultMutableTreeNode("„Éâ„É©„Éû"))
     val model = new DefaultTreeModel(root)
     tree.setModel(model)
 
@@ -147,9 +148,11 @@ object UIMain {
       update_button.add(new JMenuItem(plugin.getPluginName))
     }
     update_button.add(new JSeparator)
-    update_button.add(new AbstractAction("ê›íË") {
+    update_button.add(new AbstractAction("Ë®≠ÂÆö") {
       def actionPerformed(e: ActionEvent) = {
         new ConfigDialog(main_frame).show
+        println(ConfigData.index)
+        println(ConfigData.db)
       }
     })
 
@@ -170,8 +173,8 @@ object UIMain {
     header.add(update_button)
     //header.add(new RatingBar)
 
-    footer.addTab("ÉçÉO", scroll_pane_log)
-    footer.addTab("è⁄ç◊", scroll_pane_desc)
+    footer.addTab("„É≠„Ç∞", scroll_pane_log)
+    footer.addTab("Ë©≥Á¥∞", scroll_pane_desc)
     footer.setTabPlacement(SwingConstants.BOTTOM)
 
     left.add(new JScrollPane(tree))
@@ -204,4 +207,3 @@ object UIMain {
     main_frame.setVisible(true)
   }
 }
-

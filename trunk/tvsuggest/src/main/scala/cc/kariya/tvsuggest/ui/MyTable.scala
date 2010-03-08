@@ -105,7 +105,7 @@ extends JTable {
   }
 
   def timeNeighborAction(): AbstractAction = {
-    new AbstractAction("“¯ŠÔ‘Ñ‚ğŒŸõ") {
+    new AbstractAction("åŒæ™‚é–“å¸¯ã‚’æ¤œç´¢") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
         val pid = table.getModel.getValueAt(table.getSelectedRow, COL_PID).asInstanceOf[Int]
@@ -130,7 +130,7 @@ extends JTable {
   }
 
   def keywordAction(): AbstractAction = {
-    new AbstractAction("ƒL[ƒ[ƒh‚ğ“ü—Í") {
+    new AbstractAction("ã‚­ãƒ¼ãƒ¯ãƒ¼ãƒ‰ã‚’å…¥åŠ›") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
         val pid = table.getModel.getValueAt(table.getSelectedRow, COL_PID).asInstanceOf[Int]
@@ -162,7 +162,7 @@ extends JTable {
   }
 
   def tinySegmenterAction(): AbstractAction = {
-    new AbstractAction("TinySegmeenter‚Å‹æØ‚é") {
+    new AbstractAction("TinySegmeenterã§åŒºåˆ‡ã‚‹") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
         val v = table.getModel.getValueAt(table.getSelectedRow, COL_DESC).asInstanceOf[String]
@@ -188,7 +188,7 @@ extends JTable {
   }
 
   def yahooSegmenterAction(): AbstractAction = {
-    new AbstractAction("YahooŒ`‘Ô‘f•ªÍ‚Å‹æØ‚é") {
+    new AbstractAction("Yahooå½¢æ…‹ç´ åˆ†æã§åŒºåˆ‡ã‚‹") {
       def actionPerformed(e: ActionEvent) = {
         val table = MyTable.this
         val v = table.getModel.getValueAt(table.getSelectedRow, COL_DESC).asInstanceOf[String]
@@ -218,7 +218,7 @@ extends JTable {
   val COL_DESC = 6
 
   def setContents(arrays: Array[Array[AnyRef]]) = {
-    val title = Array("pid", "ƒŒ [ ƒe ƒB ƒ“ ƒO", "ŠJn": AnyRef, "I—¹", "Ch", "ƒ^ƒCƒgƒ‹", "“à—e")
+    val title = Array("pid", "ãƒ¬ ãƒ¼ ãƒ† ã‚£ ãƒ³ ã‚°", "é–‹å§‹": AnyRef, "çµ‚äº†", "Ch", "ã‚¿ã‚¤ãƒˆãƒ«", "å†…å®¹")
     setModel(new DefaultTableModel(arrays, title))
     setAutoResizeMode(JTable.AUTO_RESIZE_OFF)
     val renderer = new RatingBarEditorRenderer(this)

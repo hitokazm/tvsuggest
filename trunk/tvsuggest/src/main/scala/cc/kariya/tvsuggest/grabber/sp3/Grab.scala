@@ -26,7 +26,7 @@ object Grab extends IPlugin with UILogger {
     val src = new Source(new URL(url))
 
     src.getTextExtractor.toString
-    .replaceAll("ƒ‚o‚q„.*ƒ^‚o‚q„", "")
+    .replaceAll("ï¼œï¼°ï¼²ï¼.*ï¼œï¼ï¼°ï¼²ï¼", "")
   }
 
   def getChannels() ={
