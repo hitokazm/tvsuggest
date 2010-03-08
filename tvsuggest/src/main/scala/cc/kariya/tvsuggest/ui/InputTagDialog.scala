@@ -16,7 +16,7 @@ import javax.swing.JPanel
 import javax.swing.JTextArea
 import scala.collection.JavaConversions._
 
-class InputTagDialog(val owner: Frame) extends JDialog(owner, "ƒ^ƒO‚ð“ü—Í", true) {
+class InputTagDialog(val owner: Frame) extends JDialog(owner, "ã‚¿ã‚°ã‚’å…¥åŠ›", true) {
   
   val input = new JTextArea(5,30)
   val panel = new JPanel
