@@ -5,9 +5,13 @@
 
 package cc.kariya.tvsuggest.engine
 
+import scala.reflect.BeanProperty
+
 object ConfigData {
 
+  @BeanProperty
   var index = "cjkindex"
+  @BeanProperty
   var db = "sqlite.db"
 
 }
