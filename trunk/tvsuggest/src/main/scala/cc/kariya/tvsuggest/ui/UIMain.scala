@@ -15,6 +15,7 @@ import com.jidesoft.swing.ButtonStyle
 import com.jidesoft.swing.JideSplitButton
 import com.jidesoft.swing.JideTabbedPane
 import java.awt.BorderLayout
+import java.awt.Dialog
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.AbstractAction
@@ -150,9 +151,9 @@ object UIMain {
     update_button.add(new JSeparator)
     update_button.add(new AbstractAction("設定") {
       def actionPerformed(e: ActionEvent) = {
-        new ConfigDialog(main_frame).show
-        println(ConfigData.index)
-        println(ConfigData.db)
+        val dlg = new ConfigDialog(main_frame)
+        dlg.show
+        dlg.asInstanceOf[Dialog].dispose
       }
     })
 
@@ -198,7 +199,7 @@ object UIMain {
     status_bar.addRightComponent(new JLabel("2010/02/26"), 40)
     status_bar.addRightComponent(new JLabel("11:59 PM"), 30)
     
-    main_frame.setSize(640, 480)
+    main_frame.setSize(ConfigData.x, ConfigData.y)
     main_frame.setLocationRelativeTo(null)
 
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
