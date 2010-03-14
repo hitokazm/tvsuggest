@@ -69,7 +69,6 @@
 
       adapter.addBeanPropertyChangeListener(new PropertyChangeListener {
         def propertyChange(e: PropertyChangeEvent) = {
-          println(e.getPropertyName)
           if (e.getPropertyName == "x") {
             val x = e.getNewValue.asInstanceOf[Int]
             UIMain.main_frame.setSize(x, UIMain.main_frame.getSize.getHeight.toInt)
