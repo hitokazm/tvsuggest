@@ -20,7 +20,11 @@
       <url>http://download.java.net/maven/2/</url>
       <layout>default</layout>
     </repository>
-
+      <repository>
+          <id>JBOSS</id>
+          <name>JBoss Repository</name>
+          <url>http://repository.jboss.org/maven2/</url>
+      </repository>
   </repositories>
 
   <pluginRepositories>
@@ -127,6 +131,11 @@
       <artifactId>binding</artifactId>
       <version>2.0.6</version>
     </dependency>
+      <dependency>
+          <groupId>i18nlog</groupId>
+          <artifactId>i18nlog</artifactId>
+          <version>1.0.9</version>
+      </dependency>
   </dependencies>
 
   <build>
@@ -236,13 +245,3 @@
   </reporting>
     <name>TVSuggest</name>
 </project>
-
-
-
-
-
-
-
-
-
-

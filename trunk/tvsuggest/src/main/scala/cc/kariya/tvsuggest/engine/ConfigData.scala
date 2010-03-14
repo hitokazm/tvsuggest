@@ -21,6 +21,7 @@ object ConfigData extends BoundPropertyBean {
   var db = "sqlite.db"
   var x = 640
   var y = 480
+  var uiInifile = "ui.xml"
 
   if (new File(inifile).exists) {
     fromXML(XML.loadFile(inifile))

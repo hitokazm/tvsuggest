@@ -14,8 +14,6 @@ import cc.kariya.tvsuggest.grabber.sp3.Grab
 import com.jidesoft.swing.ButtonStyle
 import com.jidesoft.swing.JideSplitButton
 import com.jidesoft.swing.JideTabbedPane
-import java.awt.BorderLayout
-import java.awt.Dialog
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.AbstractAction
@@ -38,6 +36,7 @@ import javax.swing.event.TreeSelectionEvent
 import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
+import java.awt.{Dimension, BorderLayout, Dialog}
 
 object UIMain {
 
@@ -58,7 +57,7 @@ object UIMain {
   val update_button = new JideSplitButton("更新")
   val scroll_pane_log = new JScrollPane
   val scroll_pane_desc = new JScrollPane
-  val tree = new JTree
+  val tree = MyTree.load
 
   def main(args: Array[String]): Unit = {
     search_text.addActionListener(new ActionListener {
@@ -92,47 +91,18 @@ object UIMain {
         }
       })
 
-    tree.getSelectionModel.addTreeSelectionListener(new TreeSelectionListener {
-        def valueChanged(e: TreeSelectionEvent) = {
-          val buf = new StringBuffer
-          for (o <- e.getPath.getPath.tail) {
-            buf.append(" AND %s".format(o.toString))
-          }
-          val text = buf.substring(5)
-          new MyWorker(log_area) {
-            var ar: Array[Array[AnyRef]] = null
-            def doInBackground() = {
-              ar = Lucene.search(text)
-              Lucene.close
-            }
-            override def done() = {
-              if (ar.isEmpty) {
-                val suggestions = Lucene.spellcheck(text)
-                var maybe = ""
-                for (s <- suggestions) {
-                  maybe += " " + s
-                }
-                JOptionPane.showMessageDialog(null, "No hit! Maybe" + maybe)
-              } else {
-                val table = new MyTable(body, log_area, desc_area)
-                table.setDefaultEditor(classOf[AnyRef], null)
-                table.setContents(ar)
-                body.addTab(text, new JScrollPane(table))
-                body.setSelectedIndex(body.getTabCount - 1)
-              }
-            }
-          }.execute
-        }
-      })
-    
-    val root = new DefaultMutableTreeNode("キーワード")
-    val node = new DefaultMutableTreeNode("SF")
-    node.add(new DefaultMutableTreeNode("海外"))
-    root.add(node)
-    root.add(new DefaultMutableTreeNode("ドラマ"))
+    /*
+    val root = new DefaultMutableTreeNode(new TreeNodeValue("KEYWORD", "", ""))
+    val node1 = new DefaultMutableTreeNode(new TreeNodeValue("ドラマ", "ドラマ", ""))
+    val node2 = new DefaultMutableTreeNode(new TreeNodeValue("海外", "海外", "", false))
+    val node3 = new DefaultMutableTreeNode(new TreeNodeValue("!韓", "NOT 韓", ""))
+    root.add(node1)
+    node1.add(node2)
+    node2.add(node3)
+    root.add(new DefaultMutableTreeNode(new TreeNodeValue("SF", "SF", "")))
     val model = new DefaultTreeModel(root)
     tree.setModel(model)
-
+    */
 
     update_button.addActionListener(new ActionListener {
         def actionPerformed(ev: ActionEvent) = {
@@ -178,6 +148,7 @@ object UIMain {
     footer.addTab("詳細", scroll_pane_desc)
     footer.setTabPlacement(SwingConstants.BOTTOM)
 
+    tree.setPreferredSize(new Dimension(160, 360))
     left.add(new JScrollPane(tree))
 
     main_frame.setLayout(new BorderLayout)
