@@ -22,12 +22,14 @@ class MyTree extends JTree {
 
   this.getSelectionModel.addTreeSelectionListener(new TreeSelectionListener {
     def valueChanged(e: TreeSelectionEvent): Unit = {
-      if (e.getPath.getPath.length < 2) return
-      
       val buf = new StringBuffer
       for (o <- e.getPath.getPath.tail) {
-        buf.append(" AND %s".format(o.asInstanceOf[DefaultMutableTreeNode].getUserObject.asInstanceOf[TreeNodeValue].query))
+        val value = o.asInstanceOf[DefaultMutableTreeNode].getUserObject.asInstanceOf[TreeNodeValue]
+        if (value.searchable) {
+          buf.append(" AND %s".format(value.query))
+        }
       }
+      if (buf.length == 0) return
       val text = buf.substring(5)
       new MyWorker(UIMain.log_area) {
         var ar: Array[Array[AnyRef]] = null
@@ -57,13 +59,22 @@ class MyTree extends JTree {
 //  setComponentPopupMenu(new JPopupMenu("myPopup"))
 
   this.asInstanceOf[Component].addMouseListener(new MouseAdapter {
+    override def mouseClicked(e: MouseEvent): Unit = {
+      if (e.getClickCount == 2) {
+        edit(e)
+      } else if (e.isPopupTrigger) {
+        val path = MyTree.this.getPathForLocation(e.getX(), e.getY())
+        MyTree.this.setSelectionPath(path)
+        MyTree.this.getModel.reload
+      }
+    }
     override def mouseReleased(e: MouseEvent): Unit  = {
       if (e.isPopupTrigger) {
         val menu = new JPopupMenu("menu")
         menu.add(new AbstractAction("add") {
           def actionPerformed(e2: ActionEvent): Unit = {
             val path = MyTree.this.getClosestPathForLocation(e.getX, e.getY).getPath
-            if (path.length < 2) return
+            //if (path.length < 2) return
             val model = MyTree.this.getModel.asInstanceOf[DefaultTreeModel]
             val parent = path(path.length - 1).asInstanceOf[MutableTreeNode]
             val new_node = {
@@ -83,24 +94,7 @@ class MyTree extends JTree {
         })
         menu.add(new AbstractAction("edit") {
           def actionPerformed(e2: ActionEvent) = {
-            val path0 = MyTree.this.getClosestPathForLocation(e.getX, e.getY)
-            val path = path0.getPath
-            val model = MyTree.this.getModel.asInstanceOf[DefaultTreeModel]
-            val node = path(path.length - 1).asInstanceOf[DefaultMutableTreeNode]
-            val data = node.getUserObject.asInstanceOf[TreeNodeValue]
-            val new_node_value = {
-              val dlg = new KeywordDialog(UIMain.main_frame, data)
-              dlg.show
-              val label = dlg.data.label
-              val query = dlg.data.query
-              val seachable = dlg.data.searchable
-              dlg.hide
-              new TreeNodeValue(label, query, "", seachable)
-            }
-            model.valueForPathChanged(path0, new_node_value)
-            model.reload
-            visitAll(MyTree.this, new TreePath(path(0)))
-            save
+            edit(e)
           }
         })
         menu.add(new AbstractAction("delete") {
@@ -118,6 +112,27 @@ class MyTree extends JTree {
       }
     }
   })
+
+  private def edit(e: MouseEvent): Unit = {
+    val path0 = MyTree.this.getClosestPathForLocation(e.getX, e.getY)
+    val path = path0.getPath
+    val model = MyTree.this.getModel.asInstanceOf[DefaultTreeModel]
+    val node = path(path.length - 1).asInstanceOf[DefaultMutableTreeNode]
+    val data = node.getUserObject.asInstanceOf[TreeNodeValue]
+    val new_node_value = {
+      val dlg = new KeywordDialog(UIMain.main_frame, data)
+      dlg.show
+      val label = dlg.data.label
+      val query = dlg.data.query
+      val seachable = dlg.data.searchable
+      dlg.hide
+      new TreeNodeValue(label, query, "", seachable)
+    }
+    model.valueForPathChanged(path0, new_node_value)
+    model.reload
+    visitAll(MyTree.this, new TreePath(path(0)))
+    save
+  }
 
   def visitAll(tree: JTree, parent: TreePath, expand: Boolean): Unit = {
     val node = parent.getLastPathComponent().asInstanceOf[TreeNode]
@@ -166,7 +181,11 @@ object MyTree {
       tree.setModel(model)
       return tree
     } else {
-      return new MyTree()
+      val tree = new MyTree
+      val root = new DefaultMutableTreeNode(new TreeNodeValue("KEYWORD", "", "", false))
+      val model = new DefaultTreeModel(root)
+      tree.setModel(model)
+      return tree
     }
   }
 }

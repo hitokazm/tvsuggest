@@ -14,6 +14,7 @@ import cc.kariya.tvsuggest.grabber.sp3.Grab
 import com.jidesoft.swing.ButtonStyle
 import com.jidesoft.swing.JideSplitButton
 import com.jidesoft.swing.JideTabbedPane
+import java.awt.Dialog
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.AbstractAction
@@ -162,6 +163,7 @@ object UIMain {
     main_panel.add(left, BorderLayout.WEST)
 
     menu_bar.add(new JMenuItem("File"))
+    
     main_frame.setJMenuBar(menu_bar)
 
     status_bar.setMainLeftComponent(new JLabel("welcome"))

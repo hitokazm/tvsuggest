@@ -164,6 +164,7 @@
           </args>
         </configuration>
       </plugin>
+ <!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-eclipse-plugin</artifactId>
@@ -181,7 +182,7 @@
           </classpathContainers>
         </configuration>
       </plugin>
-
+ -->
 	        <plugin>
 	            <groupId>org.apache.maven.plugins</groupId>
 	            <artifactId>maven-jar-plugin</artifactId>
